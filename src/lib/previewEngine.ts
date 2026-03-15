@@ -1,4 +1,83 @@
-import { Variable, ConditionDefinition, Hyperlink, CTAButton, FormatterType } from '../types/template';
+import { Variable, ConditionDefinition, Hyperlink, CTAButton, FormatterType, FieldType, InboundFormat, DisplayFormat } from '../types/template';
+
+function parseInboundValue(raw: string, inboundFormat: InboundFormat): number | null {
+  const cleaned = String(raw).replace(/[$,]/g, '');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? null : num;
+}
+
+function parseInboundDate(raw: string, inboundFormat: InboundFormat): Date | null {
+  if (!raw) return null;
+  let y: number, m: number, d: number;
+  if (inboundFormat === 'YYYYMMDD') {
+    y = parseInt(raw.slice(0, 4));
+    m = parseInt(raw.slice(4, 6)) - 1;
+    d = parseInt(raw.slice(6, 8));
+  } else if (inboundFormat === 'YYYY-MM-DD') {
+    const parts = raw.split('-');
+    y = parseInt(parts[0]);
+    m = parseInt(parts[1]) - 1;
+    d = parseInt(parts[2]);
+  } else if (inboundFormat === 'MM-DD-YYYY') {
+    const parts = raw.split('-');
+    m = parseInt(parts[0]) - 1;
+    d = parseInt(parts[1]);
+    y = parseInt(parts[2]);
+  } else {
+    const parts = raw.split('/');
+    m = parseInt(parts[0]) - 1;
+    d = parseInt(parts[1]);
+    y = parseInt(parts[2]);
+  }
+  const date = new Date(y, m, d);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+function applyDisplayFormat(value: any, fieldType: FieldType, inboundFormat: InboundFormat | undefined, displayFormat: DisplayFormat | undefined): string {
+  const raw = String(value);
+
+  if (fieldType === 'Currency') {
+    const num = parseInboundValue(raw, inboundFormat || '####');
+    if (num === null) return raw;
+    if (displayFormat === '$#,###') {
+      return `$${Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+    }
+    return `$${num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  }
+
+  if (fieldType === 'Date') {
+    const date = parseInboundDate(raw, inboundFormat || 'MM/DD/YYYY');
+    if (!date) return raw;
+    if (displayFormat === 'MMMM D, YYYY') {
+      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+    if (displayFormat === 'MMM D, YYYY') {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    if (displayFormat === 'M/D/YYYY') {
+      return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+    }
+    return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}/${date.getFullYear()}`;
+  }
+
+  if (fieldType === 'Number') {
+    const num = parseInboundValue(raw, inboundFormat || '####');
+    if (num === null) return raw;
+    if (displayFormat === '#,###') return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (displayFormat === '#,###.##') return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (displayFormat === '####.##') return num.toFixed(2);
+    return String(Math.round(num));
+  }
+
+  if (fieldType === 'Text') {
+    if (displayFormat === 'uppercase') return raw.toUpperCase();
+    if (displayFormat === 'lowercase') return raw.toLowerCase();
+    if (displayFormat === 'capitalize') return raw.replace(/\b\w/g, c => c.toUpperCase());
+    return raw;
+  }
+
+  return raw;
+}
 
 export function applyFormatter(value: any, formatter: FormatterType): string {
   if (!formatter || formatter === 'none') {
@@ -51,7 +130,11 @@ export function applyFormatters(
 
   variables.forEach((variable) => {
     const value = values[variable.name];
-    formatted[variable.name] = applyFormatter(value, variable.formatter || 'none');
+    if (variable.isConfigured && variable.fieldType && variable.displayFormat) {
+      formatted[variable.name] = applyDisplayFormat(value, variable.fieldType, variable.inboundFormat, variable.displayFormat);
+    } else {
+      formatted[variable.name] = applyFormatter(value, variable.formatter || 'none');
+    }
   });
 
   return formatted;

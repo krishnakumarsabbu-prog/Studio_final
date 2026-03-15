@@ -1,12 +1,32 @@
 export type VariableType = 'string' | 'number' | 'boolean' | 'image' | 'url' | 'array' | 'object';
 export type FormatterType = 'none' | 'currency' | 'date' | 'datetime' | 'time' | 'percentage' | 'uppercase' | 'lowercase' | 'capitalize';
 
+export type PopulationSource = 'dynamic' | 'upstream';
+export type FieldType = 'Text' | 'Currency' | 'Number' | 'Date';
+
+export type CurrencyInboundFormat = '####' | '####.##' | '$#,###.##' | '$#,###';
+export type CurrencyDisplayFormat = '$#,###.##' | '$#,###';
+export type DateInboundFormat = 'MM/DD/YYYY' | 'YYYY-MM-DD' | 'MM-DD-YYYY' | 'YYYYMMDD';
+export type DateDisplayFormat = 'MM/DD/YYYY' | 'MMMM D, YYYY' | 'MMM D, YYYY' | 'M/D/YYYY';
+export type NumberInboundFormat = '####' | '####.##' | '#,###' | '#,###.##';
+export type NumberDisplayFormat = '####' | '#,###' | '#,###.##' | '####.##';
+export type TextDisplayFormat = 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+
+export type InboundFormat = CurrencyInboundFormat | DateInboundFormat | NumberInboundFormat | string;
+export type DisplayFormat = CurrencyDisplayFormat | DateDisplayFormat | NumberDisplayFormat | TextDisplayFormat | string;
+
 export interface Variable {
   id: string;
   name: string;
   type: VariableType;
   description?: string;
   formatter?: FormatterType;
+  populationSource?: PopulationSource;
+  fieldType?: FieldType;
+  inboundFormat?: InboundFormat;
+  displayFormat?: DisplayFormat;
+  tridionSyntax?: string;
+  isConfigured?: boolean;
 }
 
 export type ConditionOperator = '==' | '!=' | '>' | '<' | '>=' | '<=' | 'contains' | 'notContains';
