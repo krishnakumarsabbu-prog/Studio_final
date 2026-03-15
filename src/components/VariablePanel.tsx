@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { Plus, Trash2, CreditCard as Edit2, Save, X, Settings, CheckCircle } from 'lucide-react';
-import { Variable, VariableType, FormatterType } from '../types/template';
+import { Variable, VariableType, FormatterType, ConditionDefinition } from '../types/template';
 import FieldSetupModal from './modals/FieldSetupModal';
 
 interface VariablePanelProps {
   variables: Variable[];
   onVariablesChange: (variables: Variable[]) => void;
+  onConditionsChange?: (conditions: ConditionDefinition[]) => void;
+  conditions?: ConditionDefinition[];
 }
 
-export default function VariablePanel({ variables, onVariablesChange }: VariablePanelProps) {
+export default function VariablePanel({ variables, onVariablesChange, onConditionsChange, conditions = [] }: VariablePanelProps) {
   const [theme] = useState(localStorage.getItem('theme') || 'light');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Variable>>({});
@@ -60,8 +62,12 @@ export default function VariablePanel({ variables, onVariablesChange }: Variable
     onVariablesChange(variables.filter((v) => v.id !== id));
   };
 
-  const handleFieldSetupSave = (updated: Variable) => {
+  const handleFieldSetupSave = (updated: Variable, condition?: ConditionDefinition) => {
     onVariablesChange(variables.map((v) => v.id === updated.id ? updated : v));
+    if (condition && onConditionsChange) {
+      const exists = conditions.find((c) => c.id === condition.id);
+      if (!exists) onConditionsChange([...conditions, condition]);
+    }
     setSetupVariable(null);
   };
 
@@ -321,6 +327,7 @@ export default function VariablePanel({ variables, onVariablesChange }: Variable
         isOpen={setupVariable !== null}
         onClose={() => setSetupVariable(null)}
         onSave={handleFieldSetupSave}
+        allVariables={variables}
       />
     </div>
   );

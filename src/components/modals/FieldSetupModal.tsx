@@ -6,13 +6,16 @@ import {
   PopulationSource,
   InboundFormat,
   DisplayFormat,
+  ConditionDefinition,
 } from '../../types/template';
+import DynamicFieldChatPanel from '../DynamicFieldChatPanel';
 
 interface FieldSetupModalProps {
   variable: Variable | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (updated: Variable) => void;
+  onSave: (updated: Variable, condition?: ConditionDefinition) => void;
+  allVariables?: Variable[];
 }
 
 const CURRENCY_INBOUND_OPTIONS: { value: InboundFormat; label: string; example: string }[] = [
@@ -145,13 +148,15 @@ function runTestValue(
   return raw;
 }
 
-export default function FieldSetupModal({ variable, isOpen, onClose, onSave }: FieldSetupModalProps) {
+export default function FieldSetupModal({ variable, isOpen, onClose, onSave, allVariables = [] }: FieldSetupModalProps) {
   const [populationSource, setPopulationSource] = useState<PopulationSource>('upstream');
   const [fieldType, setFieldType] = useState<FieldType>('Text');
   const [inboundFormat, setInboundFormat] = useState<InboundFormat>('####');
   const [displayFormat, setDisplayFormat] = useState<DisplayFormat>('none');
   const [testResult, setTestResult] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [dynamicCondition, setDynamicCondition] = useState<ConditionDefinition | null>(null);
+  const [businessRequirement, setBusinessRequirement] = useState('');
 
   useEffect(() => {
     if (variable) {
@@ -161,6 +166,8 @@ export default function FieldSetupModal({ variable, isOpen, onClose, onSave }: F
       setDisplayFormat(variable.displayFormat || 'none');
       setTestResult(null);
       setIsSaved(false);
+      setDynamicCondition(null);
+      setBusinessRequirement('');
     }
   }, [variable]);
 
@@ -223,7 +230,7 @@ export default function FieldSetupModal({ variable, isOpen, onClose, onSave }: F
       tridionSyntax: syntax,
       formatter: formatterMap[fieldType] as any,
       isConfigured: true,
-    });
+    }, dynamicCondition || undefined);
     setIsSaved(true);
     setTimeout(() => onClose(), 800);
   };
@@ -233,11 +240,13 @@ export default function FieldSetupModal({ variable, isOpen, onClose, onSave }: F
   const inboundOptions = getInboundOptions();
   const displayOptions = getDisplayOptions();
   const showFormatOptions = populationSource === 'upstream';
+  const showDynamicChat = populationSource === 'dynamic';
+  const modalMaxW = showDynamicChat ? 'max-w-2xl' : 'max-w-lg';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <div className={`bg-white rounded-xl shadow-2xl w-full ${modalMaxW} mx-4 overflow-hidden flex flex-col`} style={{ maxHeight: '90vh' }}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
           <div>
             <h2 className="text-base font-bold text-gray-900">Set Up Field: <span className="text-wf-red font-mono">{variable.name}</span></h2>
           </div>
@@ -249,7 +258,7 @@ export default function FieldSetupModal({ variable, isOpen, onClose, onSave }: F
           </button>
         </div>
 
-        <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+        <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-3">How will this field be populated?</p>
             <div className="space-y-2.5">
@@ -292,6 +301,21 @@ export default function FieldSetupModal({ variable, isOpen, onClose, onSave }: F
               </label>
             </div>
           </div>
+
+          {showDynamicChat && (
+            <div style={{ height: '420px' }}>
+              <DynamicFieldChatPanel
+                key={variable.id}
+                variable={variable}
+                existingVariables={allVariables}
+                businessRequirement={businessRequirement}
+                onConditionGenerated={(cond, br) => {
+                  setDynamicCondition(cond);
+                  setBusinessRequirement(br);
+                }}
+              />
+            </div>
+          )}
 
           {showFormatOptions && (
             <>

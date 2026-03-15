@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Download, ArrowLeft, Eye, Code2, HelpCircle, X, Moon, Sun, ChevronRight, ChevronDown, FileText, Play } from 'lucide-react';
+import { Save, Download, ArrowLeft, Eye, Code2, HelpCircle, X, Moon, Sun, ChevronRight, ChevronDown, FileText, Play, Settings2 } from 'lucide-react';
 import HTMLCanvasEditor from '../components/HTMLCanvasEditor';
 import SelectionToolbar from '../components/SelectionToolbar';
 import VariablePanel from '../components/VariablePanel';
@@ -9,6 +9,7 @@ import CTAPanel from '../components/CTAPanel';
 import EditorChatPanel from '../components/EditorChatPanel';
 import LiveEmailPreview from '../components/LiveEmailPreview';
 import LivePreviewModal from '../components/modals/LivePreviewModal';
+import ConfigureFieldsModal from '../components/modals/ConfigureFieldsModal';
 import { SelectionInfo, Variable, ConditionDefinition, Hyperlink, CTAButton } from '../types/template';
 import {
   renderTemplate,
@@ -47,6 +48,7 @@ export default function EditorPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['variables']));
   const [showHelp, setShowHelp] = useState(false);
   const [showLivePreview, setShowLivePreview] = useState(false);
+  const [showConfigureFields, setShowConfigureFields] = useState(false);
   const [isGeneratingFRD, setIsGeneratingFRD] = useState(false);
 
   useEffect(() => {
@@ -476,6 +478,15 @@ export default function EditorPage() {
                 <Play size={18} strokeWidth={2.5} />
                 Live Preview
               </button>
+              {variables.length > 0 && (
+                <button
+                  onClick={() => setShowConfigureFields(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-sm"
+                >
+                  <Settings2 size={18} strokeWidth={2.5} />
+                  Configure Fields
+                </button>
+              )}
               <button
                 onClick={handleDownloadFRD}
                 disabled={isGeneratingFRD}
@@ -608,7 +619,7 @@ export default function EditorPage() {
             </button>
             {expandedSections.has('variables') && (
               <div className="max-h-96 overflow-y-auto">
-                <VariablePanel variables={variables} onVariablesChange={setVariables} />
+                <VariablePanel variables={variables} onVariablesChange={setVariables} conditions={conditions} onConditionsChange={setConditions} />
               </div>
             )}
           </div>
@@ -726,6 +737,15 @@ export default function EditorPage() {
         conditions={conditions}
         hyperlinks={hyperlinks}
         ctaButtons={ctaButtons}
+      />
+
+      <ConfigureFieldsModal
+        isOpen={showConfigureFields}
+        onClose={() => setShowConfigureFields(false)}
+        variables={variables}
+        conditions={conditions}
+        onVariablesChange={setVariables}
+        onConditionsChange={setConditions}
       />
     </div>
   );
