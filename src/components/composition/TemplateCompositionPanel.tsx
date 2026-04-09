@@ -1,13 +1,15 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Search, Filter, Plus, ChevronDown, ChevronUp, ChevronRight,
+  Search, Plus, ChevronDown, ChevronRight,
   Maximize2, Minimize2, CheckCircle, AlertTriangle, XCircle,
   Code2, Layers, LayoutTemplate, RefreshCw
 } from 'lucide-react';
 import ComponentCard from './ComponentCard';
 import TemplateMetaCard from './TemplateMetaCard';
 import AddComponentModal from './AddComponentModal';
+import SelectionActionsPanel from './SelectionActionsPanel';
 import { AlertComponent, TemplateSchema, SectionType, DEFAULT_SCHEMA, getValidationState } from './types';
+import { useEditorSync, findBestMatchingComponentIndex } from '../../contexts/EditorSyncContext';
 
 const SECTION_CONFIG: Record<SectionType, {
   label: string;
@@ -81,6 +83,7 @@ interface SectionGroupProps {
   isCollapsed: boolean;
   onToggle: () => void;
   selectedIndex: number | null;
+  highlightedIndex: number | null;
   onSelect: (globalIndex: number) => void;
   onUpdate: (globalIndex: number, updated: AlertComponent) => void;
   onDuplicate: (globalIndex: number) => void;
@@ -90,20 +93,24 @@ interface SectionGroupProps {
   onDragStart: (e: React.DragEvent, index: number) => void;
   onDragOver: (e: React.DragEvent, index: number) => void;
   onDrop: (e: React.DragEvent, index: number) => void;
+  onHighlightInEditor: (text: string) => void;
   dragIndex: number | null;
   totalComponents: number;
   onAddToSection: (section: SectionType) => void;
 }
 
 function SectionGroup({
-  section, components, isCollapsed, onToggle, selectedIndex, onSelect,
+  section, components, isCollapsed, onToggle, selectedIndex, highlightedIndex, onSelect,
   onUpdate, onDuplicate, onDelete, onMoveUp, onMoveDown,
-  onDragStart, onDragOver, onDrop, dragIndex, totalComponents, onAddToSection
+  onDragStart, onDragOver, onDrop, onHighlightInEditor, dragIndex, totalComponents, onAddToSection
 }: SectionGroupProps) {
   const cfg = SECTION_CONFIG[section];
+  const hasHighlight = components.some(({ globalIndex }) => globalIndex === highlightedIndex);
 
   return (
-    <div className={`mx-3 mb-2 rounded-xl border overflow-hidden shadow-sm ${cfg.borderColor}`}>
+    <div className={`mx-3 mb-2 rounded-xl border overflow-hidden shadow-sm transition-all ${
+      hasHighlight ? 'border-amber-300/60 dark:border-amber-700/40' : cfg.borderColor
+    }`}>
       <button
         onClick={onToggle}
         className={`w-full flex items-center justify-between px-3.5 py-2.5 transition-colors ${cfg.headerBg} hover:brightness-95 dark:hover:brightness-110`}
@@ -143,6 +150,7 @@ function SectionGroup({
                 index={localIdx}
                 globalIndex={globalIndex}
                 isSelected={selectedIndex === globalIndex}
+                isHighlighted={highlightedIndex === globalIndex}
                 isDragging={dragIndex === globalIndex}
                 onSelect={() => onSelect(globalIndex)}
                 onUpdate={(updated) => onUpdate(globalIndex, updated)}
@@ -153,6 +161,7 @@ function SectionGroup({
                 onDragStart={onDragStart}
                 onDragOver={onDragOver}
                 onDrop={onDrop}
+                onHighlightInEditor={onHighlightInEditor}
                 canMoveUp={globalIndex > 0}
                 canMoveDown={globalIndex < totalComponents - 1}
               />
@@ -165,6 +174,8 @@ function SectionGroup({
 }
 
 export default function TemplateCompositionPanel() {
+  const { selectionState, activeComponentIndex, setActiveComponentIndex, highlightTextInEditor } = useEditorSync();
+
   const [schema, setSchema] = useState<TemplateSchema>(DEFAULT_SCHEMA);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSection, setFilterSection] = useState<'All' | SectionType>('All');
@@ -176,6 +187,23 @@ export default function TemplateCompositionPanel() {
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState('');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const highlightedIndex = selectionState.selectedText
+    ? findBestMatchingComponentIndex(selectionState.selectedText, schema.alertComponents)
+    : null;
+
+  useEffect(() => {
+    if (highlightedIndex !== null) {
+      const section = schema.alertComponents[highlightedIndex]?.widget as SectionType;
+      if (section && collapsedSections.has(section)) {
+        setCollapsedSections(prev => {
+          const next = new Set(prev);
+          next.delete(section);
+          return next;
+        });
+      }
+    }
+  }, [highlightedIndex]);
 
   const toggleSection = (section: SectionType) => {
     setCollapsedSections(prev => {
@@ -403,6 +431,8 @@ export default function TemplateCompositionPanel() {
           </div>
         ) : (
           <div className="pt-3">
+            <SelectionActionsPanel />
+
             <TemplateMetaCard
               schema={schema}
               onUpdate={updates => setSchema(prev => ({ ...prev, ...updates }))}
@@ -418,7 +448,8 @@ export default function TemplateCompositionPanel() {
                   isCollapsed={collapsedSections.has(section)}
                   onToggle={() => toggleSection(section)}
                   selectedIndex={selectedIndex}
-                  onSelect={setSelectedIndex}
+                  highlightedIndex={highlightedIndex}
+                  onSelect={idx => { setSelectedIndex(idx); setActiveComponentIndex(idx); }}
                   onUpdate={handleUpdateComponent}
                   onDuplicate={handleDuplicateComponent}
                   onDelete={handleDeleteComponent}
@@ -427,6 +458,7 @@ export default function TemplateCompositionPanel() {
                   onDragStart={handleDragStart}
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
+                  onHighlightInEditor={highlightTextInEditor}
                   dragIndex={dragIndex}
                   totalComponents={schema.alertComponents.length}
                   onAddToSection={(sec) => { setAddToSection(sec); setShowAddModal(true); }}

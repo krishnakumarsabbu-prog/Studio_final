@@ -5,14 +5,17 @@ interface HTMLCanvasEditorProps {
   html: string;
   onHtmlChange: (html: string) => void;
   onSelectionChange: (selection: SelectionInfo | null) => void;
+  externalEditorRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function HTMLCanvasEditor({
   html,
   onHtmlChange,
-  onSelectionChange
+  onSelectionChange,
+  externalEditorRef,
 }: HTMLCanvasEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
+  const internalRef = useRef<HTMLDivElement>(null);
+  const editorRef = (externalEditorRef as React.RefObject<HTMLDivElement>) || internalRef;
   const [isSelecting, setIsSelecting] = useState(false);
 
   useEffect(() => {

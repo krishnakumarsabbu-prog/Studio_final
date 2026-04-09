@@ -7,6 +7,7 @@ import ConditionPanel from '../components/ConditionPanel';
 import HyperlinkPanel from '../components/HyperlinkPanel';
 import CTAPanel from '../components/CTAPanel';
 import TemplateCompositionPanel from '../components/composition/TemplateCompositionPanel';
+import { EditorSyncProvider, useEditorSync } from '../contexts/EditorSyncContext';
 import LivePreviewModal from '../components/modals/LivePreviewModal';
 import ConfigureFieldsModal from '../components/modals/ConfigureFieldsModal';
 import { SelectionInfo, Variable, ConditionDefinition, Hyperlink, CTAButton } from '../types/template';
@@ -21,6 +22,25 @@ import { templateService } from '../services/templateService';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { convertWidgetType, WidgetType } from '../lib/widgetTypes';
 import { generateFRDDocument } from '../lib/frdGenerator';
+
+function SyncedHTMLCanvasEditor(props: {
+  html: string;
+  onHtmlChange: (html: string) => void;
+  onSelectionChange: (sel: SelectionInfo | null) => void;
+}) {
+  const { editorRef, setEditorSelection } = useEditorSync();
+  return (
+    <HTMLCanvasEditor
+      html={props.html}
+      onHtmlChange={props.onHtmlChange}
+      onSelectionChange={(sel) => {
+        props.onSelectionChange(sel);
+        setEditorSelection(sel);
+      }}
+      externalEditorRef={editorRef}
+    />
+  );
+}
 
 export default function EditorPage() {
   const navigate = useNavigate();
@@ -535,6 +555,15 @@ export default function EditorPage() {
         </div>
       )}
 
+      <EditorSyncProvider
+        variables={variables}
+        conditions={conditions}
+        onMakeVariable={handleMakeVariable}
+        onWrapCondition={handleWrapCondition}
+        onCreateAndWrapCondition={handleCreateAndWrapCondition}
+        onInsertLink={handleInsertLink}
+        onInsertCTA={handleInsertCTA}
+      >
       <div className="flex-1 flex overflow-hidden">
         <div className="w-[460px] flex-shrink-0 border-r border-gray-200 dark:border-slate-800 flex flex-col overflow-hidden">
           <TemplateCompositionPanel />
@@ -551,7 +580,7 @@ export default function EditorPage() {
             </div>
           </div>
           <div className="flex-1 overflow-auto">
-            <HTMLCanvasEditor
+            <SyncedHTMLCanvasEditor
               html={templateHtml}
               onHtmlChange={setTemplateHtml}
               onSelectionChange={handleSelectionChange}
@@ -714,6 +743,7 @@ export default function EditorPage() {
           </div>
         </div>
       </div>
+      </EditorSyncProvider>
 
       <LivePreviewModal
         isOpen={showLivePreview}

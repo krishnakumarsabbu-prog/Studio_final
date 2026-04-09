@@ -1,6 +1,8 @@
+export type AlertTextType = 'Alerts Text' | 'Alerts Plain Text' | 'Image';
+
 export interface AlertComponent {
   widget: 'Header' | 'Body' | 'Footer';
-  type: 'Alerts Text' | 'Image';
+  type: AlertTextType;
   subType: 'Pageheader' | 'Body' | 'Subheader' | 'Footnote' | 'logos' | 'icons';
   textList: string[];
 }

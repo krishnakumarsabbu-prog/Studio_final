@@ -1,12 +1,18 @@
-import { useState } from 'react';
-import { GripVertical, Type, Image as ImageIcon, FileText, AlignLeft, ChevronDown, ChevronUp, CreditCard as Edit3, Copy, Trash2, ArrowUp, ArrowDown, CheckCircle, AlertTriangle, XCircle, Heading1, Heading2, AlignJustify, Scale, Star, Hash } from 'lucide-react';
-import { AlertComponent, InspectorTab, getComponentLabel, getValidationState } from './types';
+import { useState, useRef, useEffect } from 'react';
+import {
+  GripVertical, Image as ImageIcon, ChevronDown, ChevronUp,
+  CreditCard as Edit3, Copy, Trash2, ArrowUp, ArrowDown,
+  CheckCircle, AlertTriangle, XCircle, Heading1, Heading2,
+  AlignJustify, Scale, Type, ToggleLeft, ToggleRight, Zap
+} from 'lucide-react';
+import { AlertComponent, InspectorTab, AlertTextType, getComponentLabel, getValidationState } from './types';
 
 interface ComponentCardProps {
   component: AlertComponent;
   index: number;
   globalIndex: number;
   isSelected: boolean;
+  isHighlighted: boolean;
   isDragging: boolean;
   onSelect: () => void;
   onUpdate: (updated: AlertComponent) => void;
@@ -17,6 +23,7 @@ interface ComponentCardProps {
   onDragStart: (e: React.DragEvent, index: number) => void;
   onDragOver: (e: React.DragEvent, index: number) => void;
   onDrop: (e: React.DragEvent, index: number) => void;
+  onHighlightInEditor: (text: string) => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
 }
@@ -58,6 +65,36 @@ function ValidationBadge({ comp }: { comp: AlertComponent }) {
     <span className="flex items-center gap-0.5 text-[10px] font-semibold text-rose-600 dark:text-rose-400">
       <XCircle size={10} /> Issue
     </span>
+  );
+}
+
+function TypeToggle({ comp, onUpdate }: { comp: AlertComponent; onUpdate: (c: AlertComponent) => void }) {
+  if (comp.type === 'Image') return null;
+  const isPlain = comp.type === 'Alerts Plain Text';
+
+  return (
+    <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700">
+      <div className="flex-1">
+        <p className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Alert Type</p>
+        <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
+          {isPlain ? 'Alerts Plain Text — no HTML formatting' : 'Alerts Text — supports HTML markup'}
+        </p>
+      </div>
+      <button
+        onClick={() => {
+          const newType: AlertTextType = isPlain ? 'Alerts Text' : 'Alerts Plain Text';
+          onUpdate({ ...comp, type: newType });
+        }}
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+          isPlain
+            ? 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500'
+            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+        }`}
+      >
+        {isPlain ? <ToggleLeft size={12} /> : <ToggleRight size={12} />}
+        {isPlain ? 'Plain' : 'HTML'}
+      </button>
+    </div>
   );
 }
 
@@ -145,6 +182,7 @@ function InspectorPanel({ comp, onUpdate }: { comp: AlertComponent; onUpdate: (c
 
       {activeTab === 'content' && (
         <div className="space-y-2">
+          <TypeToggle comp={comp} onUpdate={onUpdate} />
           {comp.textList.map((text, i) => (
             <div key={i} className="flex gap-1.5">
               <textarea
@@ -233,17 +271,30 @@ function InspectorPanel({ comp, onUpdate }: { comp: AlertComponent; onUpdate: (c
 }
 
 export default function ComponentCard({
-  component, index, globalIndex, isSelected, isDragging,
+  component, index, globalIndex, isSelected, isHighlighted, isDragging,
   onSelect, onUpdate, onDuplicate, onDelete, onMoveUp, onMoveDown,
-  onDragStart, onDragOver, onDrop, canMoveUp, canMoveDown,
+  onDragStart, onDragOver, onDrop, onHighlightInEditor, canMoveUp, canMoveDown,
 }: ComponentCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const Icon = getTypeIcon(component);
   const label = getComponentLabel(component);
-  const validation = getValidationState(component);
+
+  useEffect(() => {
+    if ((isHighlighted || isSelected) && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [isHighlighted, isSelected]);
+
+  const handleLocateInEditor = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const firstText = component.textList[0];
+    if (firstText) onHighlightInEditor(firstText);
+  };
 
   return (
     <div
+      ref={cardRef}
       draggable
       onDragStart={e => onDragStart(e, globalIndex)}
       onDragOver={e => onDragOver(e, globalIndex)}
@@ -251,12 +302,18 @@ export default function ComponentCard({
       className={`group relative rounded-xl border transition-all duration-200 cursor-pointer select-none ${
         isDragging ? 'opacity-40 scale-95' : ''
       } ${
-        isSelected
+        isHighlighted && !isSelected
+          ? 'border-amber-400 dark:border-amber-500 bg-amber-50/40 dark:bg-amber-900/10 shadow-md shadow-amber-100 dark:shadow-amber-900/20 ring-2 ring-amber-300/50 dark:ring-amber-700/40'
+          : isSelected
           ? 'border-blue-400 dark:border-blue-500 bg-blue-50/60 dark:bg-blue-900/10 shadow-md shadow-blue-100 dark:shadow-blue-900/20'
           : 'border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-slate-800/60 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md hover:shadow-slate-100 dark:hover:shadow-slate-900/20'
       }`}
       onClick={onSelect}
     >
+      {isHighlighted && !isSelected && (
+        <div className="absolute -top-px left-0 right-0 h-0.5 bg-amber-400 dark:bg-amber-500 rounded-t-xl" />
+      )}
+
       <div className="p-3">
         <div className="flex items-start gap-2">
           <div
@@ -288,6 +345,9 @@ export default function ComponentCard({
             <div className="flex items-center gap-1 mt-0.5 flex-wrap">
               <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">{component.widget}</span>
               <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${getSubTypeBadgeColor(component.subType)}`}>{component.subType}</span>
+              {component.type === 'Alerts Plain Text' && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900">Plain</span>
+              )}
             </div>
             <ContentPreview comp={component} />
           </div>
@@ -312,6 +372,13 @@ export default function ComponentCard({
             className="flex items-center gap-1 px-2 py-1 text-[10px] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors font-medium"
           >
             <Edit3 size={10} /> Edit
+          </button>
+          <button
+            onClick={handleLocateInEditor}
+            title="Highlight in editor"
+            className="flex items-center gap-1 px-2 py-1 text-[10px] text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-md transition-colors font-medium"
+          >
+            <Zap size={10} /> Locate
           </button>
           <button
             onClick={onDuplicate}
