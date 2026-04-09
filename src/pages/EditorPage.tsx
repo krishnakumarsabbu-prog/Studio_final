@@ -6,8 +6,7 @@ import VariablePanel from '../components/VariablePanel';
 import ConditionPanel from '../components/ConditionPanel';
 import HyperlinkPanel from '../components/HyperlinkPanel';
 import CTAPanel from '../components/CTAPanel';
-import EditorChatPanel from '../components/EditorChatPanel';
-import LiveEmailPreview from '../components/LiveEmailPreview';
+import TemplateCompositionPanel from '../components/composition/TemplateCompositionPanel';
 import LivePreviewModal from '../components/modals/LivePreviewModal';
 import ConfigureFieldsModal from '../components/modals/ConfigureFieldsModal';
 import { SelectionInfo, Variable, ConditionDefinition, Hyperlink, CTAButton } from '../types/template';
@@ -537,21 +536,8 @@ export default function EditorPage() {
       )}
 
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-[500px] border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
-          <div className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <FileText size={18} className="text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">AI Template Assistant</span>
-            </div>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <EditorChatPanel
-              variables={variables}
-              currentHTML={templateHtml}
-              onHTMLUpdate={setTemplateHtml}
-              onVariablesUpdate={setVariables}
-            />
-          </div>
+        <div className="w-[460px] flex-shrink-0 border-r border-gray-200 dark:border-slate-800 flex flex-col overflow-hidden">
+          <TemplateCompositionPanel />
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden relative bg-white dark:bg-slate-900">
