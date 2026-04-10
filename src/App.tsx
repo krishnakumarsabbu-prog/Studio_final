@@ -8,6 +8,7 @@ import ImportPage from './pages/ImportPage';
 import EditorPage from './pages/EditorPage';
 import LegacyAlertsDashboard from './pages/LegacyAlertsDashboard';
 import LegacyAlertDetails from './pages/LegacyAlertDetails';
+import GmailViewerPage from './pages/GmailViewerPage';
 
 const AppContent: React.FC = () => {
   const { isDarkMode } = useAppSelector(state => state.theme);
@@ -29,7 +30,8 @@ const AppContent: React.FC = () => {
           <Route path="/editor" element={<EditorPage />} />
           <Route path="/legacy-alerts" element={<LegacyAlertsDashboard />} />
           <Route path="/legacy-alerts/:alertId" element={<LegacyAlertDetails />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/gmail-viewer" element={<GmailViewerPage />} />
+          <Route path="/" element={<Navigate to="/gmail-viewer" replace />} />
         </Routes>
       </div>
     </BrowserRouter>
