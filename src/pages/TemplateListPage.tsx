@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, FileCode, Calendar, Moon, Sun } from 'lucide-react';
+import { Plus, CreditCard as Edit, Trash2, FileCode, Calendar, Moon, Sun } from 'lucide-react';
 import { EmailTemplate } from '../types/template';
 import { templateService } from '../services/templateService';
 import { useNavigate } from 'react-router-dom';
@@ -110,6 +110,22 @@ export default function TemplateListPage() {
               className="px-4 py-2 font-semibold text-gray-700 dark:text-slate-300 hover:text-wf-red dark:hover:text-wf-red transition-all"
             >
               Legacy Alerts
+            </button>
+
+            {/* Gmail Viewer */}
+            <button
+              onClick={() => navigate('/gmail-viewer')}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-white transition-all hover:opacity-90"
+              style={{ backgroundColor: '#1a73e8' }}
+            >
+              <svg width="18" height="14" viewBox="0 0 40 32" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M4 0h32c2.2 0 4 1.8 4 4v24c0 2.2-1.8 4-4 4H4c-2.2 0-4-1.8-4-4V4C0 1.8 1.8 0 4 0z" fill="white"/>
+                <path d="M4 0h32L20 16 4 0z" fill="#EA4335"/>
+                <path d="M0 4l8 9v15L0 28V4z" fill="#C5221F"/>
+                <path d="M40 4l-8 9v15l8-6V4z" fill="#C5221F"/>
+                <path d="M8 13v15h24V13l-12 8-12-8z" fill="#FF4131"/>
+              </svg>
+              Gmail
             </button>
 
             {/* Theme Toggle */}
