@@ -33,7 +33,7 @@ const GmailLayout: React.FC = () => {
       <GmailHeader />
       <div className="flex flex-1 overflow-hidden">
         <GmailSidebar />
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
           {selectedEmail ? (
             <EmailView
               emailHtml={emailHtml}

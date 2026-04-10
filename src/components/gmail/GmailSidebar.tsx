@@ -69,7 +69,7 @@ const GmailSidebar: React.FC = () => {
   return (
     <aside
       className="flex flex-col h-full py-2 overflow-y-auto"
-      style={{ width: '256px', flexShrink: 0, fontFamily: 'Google Sans,Roboto,Arial,sans-serif' }}
+      style={{ width: '256px', flexShrink: 0, fontFamily: 'Google Sans,Roboto,Arial,sans-serif', backgroundColor: '#f6f8fc', borderRight: 'none' }}
     >
       {/* Compose */}
       <div className="px-3 pb-2">

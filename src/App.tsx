@@ -31,7 +31,7 @@ const AppContent: React.FC = () => {
           <Route path="/legacy-alerts" element={<LegacyAlertsDashboard />} />
           <Route path="/legacy-alerts/:alertId" element={<LegacyAlertDetails />} />
           <Route path="/gmail-viewer" element={<GmailViewerPage />} />
-          <Route path="/" element={<Navigate to="/gmail-viewer" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </div>
     </BrowserRouter>

@@ -33,12 +33,12 @@ const EmailView: React.FC<EmailViewProps> = ({ emailHtml, isLoading, emailMeta, 
   return (
     <div
       className="flex flex-col h-full"
-      style={{ backgroundColor: '#f6f8fc' }}
+      style={{ backgroundColor: '#ffffff' }}
     >
       {/* Top Action Bar */}
       <div
         className="flex items-center px-4 h-12 gap-1 flex-shrink-0"
-        style={{ backgroundColor: '#f6f8fc' }}
+        style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e0e0e0' }}
       >
         <button
           onClick={onBack}
@@ -69,10 +69,10 @@ const EmailView: React.FC<EmailViewProps> = ({ emailHtml, isLoading, emailMeta, 
       </div>
 
       {/* Scrollable Email Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-6">
+      <div className="flex-1 overflow-y-auto pb-6" style={{ backgroundColor: '#ffffff' }}>
         <div
-          className="mx-auto rounded-2xl overflow-hidden"
-          style={{ maxWidth: '900px', backgroundColor: '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}
+          className="mx-auto"
+          style={{ maxWidth: '900px', backgroundColor: '#ffffff' }}
         >
           {/* Subject + Label */}
           <div className="flex items-start justify-between px-6 pt-5 pb-3 gap-4">
@@ -146,7 +146,7 @@ const EmailView: React.FC<EmailViewProps> = ({ emailHtml, isLoading, emailMeta, 
           {/* View Controls */}
           <div
             className="flex items-center justify-between px-6 py-2"
-            style={{ borderTop: '1px solid #f1f3f4', backgroundColor: '#fafafa' }}
+            style={{ borderTop: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', backgroundColor: '#ffffff' }}
           >
             <div className="flex items-center gap-2">
               <span style={{ fontSize: '12px', color: '#5f6368', fontFamily: 'Google Sans,Roboto,Arial,sans-serif' }}>View:</span>
@@ -192,7 +192,7 @@ const EmailView: React.FC<EmailViewProps> = ({ emailHtml, isLoading, emailMeta, 
           </div>
 
           {/* Email Body */}
-          <div style={{ backgroundColor: '#f4f4f4', minHeight: '200px' }}>
+          <div style={{ backgroundColor: '#ffffff', minHeight: '200px' }}>
             {isLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div
@@ -206,7 +206,7 @@ const EmailView: React.FC<EmailViewProps> = ({ emailHtml, isLoading, emailMeta, 
           </div>
 
           {/* Reply / Forward */}
-          <div className="flex items-center gap-3 px-6 py-4" style={{ borderTop: '1px solid #f1f3f4' }}>
+          <div className="flex items-center gap-3 px-6 py-4" style={{ borderTop: '1px solid #e0e0e0' }}>
             {[{ icon: <Reply size={16} />, label: 'Reply' }, { icon: <Forward size={16} />, label: 'Forward' }].map(btn => (
               <button
                 key={btn.label}
