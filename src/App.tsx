@@ -8,6 +8,7 @@ import ImportPage from './pages/ImportPage';
 import EditorPage from './pages/EditorPage';
 import LegacyAlertsDashboard from './pages/LegacyAlertsDashboard';
 import LegacyAlertDetails from './pages/LegacyAlertDetails';
+import PipelinePage from './pages/PipelinePage';
 import GmailViewerPage from './pages/GmailViewerPage';
 
 const AppContent: React.FC = () => {
@@ -30,6 +31,7 @@ const AppContent: React.FC = () => {
           <Route path="/editor" element={<EditorPage />} />
           <Route path="/legacy-alerts" element={<LegacyAlertsDashboard />} />
           <Route path="/legacy-alerts/:alertId" element={<LegacyAlertDetails />} />
+          <Route path="/legacy-alerts/:alertId/pipeline" element={<PipelinePage />} />
           <Route path="/gmail-viewer" element={<GmailViewerPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>

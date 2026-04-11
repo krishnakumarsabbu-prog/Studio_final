@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight, FileCode } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, FileCode, GitBranch } from 'lucide-react';
 import JsonViewer from '../components/JsonViewer';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -79,6 +79,15 @@ export default function LegacyAlertDetails() {
                 <h1 className="text-2xl font-bold text-gray-900">Alert {alertId}</h1>
                 <p className="text-sm text-gray-500 font-mono">{alert.completeInfo.MessageKey}</p>
               </div>
+            </div>
+            <div className="ml-auto">
+              <button
+                onClick={() => navigate(`/legacy-alerts/${alertId}/pipeline`)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-sm transition-all shadow-md hover:shadow-lg"
+              >
+                <GitBranch size={16} />
+                Pipeline
+              </button>
             </div>
           </div>
         </div>
